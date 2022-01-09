@@ -63,6 +63,16 @@ class Application(fix.Application):
         message.getHeader().getField( beginString )
         message.getHeader().getField( msgType )
 
+
+        # likely only interested in execution reports -- for now receiving all.
+        if msgType.getValue() == fix.MsgType_ExecutionReport:
+            print("Execution Report Received")
+
+        # else:
+        #     return ## DONT need the rest of them
+
+
+
         symbol = fix.Symbol()
         side = fix.Side()
         # ordType = fix.OrdType() ##THIS is not in ExecutionReport !
@@ -71,26 +81,19 @@ class Application(fix.Application):
         clOrdID = fix.ClOrdID()
 
 
-
-        ## THIS is how you GET a value from a message... OR is it received like passed by ref in C++? Cant tell...
-
-        # THIS canbe set to ANY field in ExecReport !! Test them all.
-
+        # Quick test (test any of the defined fields ^^)
         field = symbol                              # 55=
         message.getField( field )                   # 55=MSFT
-        if field.getValue() != fix.OrdType_LIMIT:   # MSFT != 1
-            #raise fix.IncorrectTagValue( ordType.getField() )
-            pass
+        if field.getValue() != "MSFT":   # MSFT != MSFT
             print("field (test) -- ", field, field.getValue())
 
-        # Shortcut attempts (No real shortcuts to this)
-
+        # AIO example (No real shortcuts to this)
         key = fix.Symbol()
         message.getField( key )
         res = key.getValue()
         print("KEY-VAL Test (shortcut): ", res)
 
-        ## Symbol Example (In order)
+        ## Symbol Example (In order) (Duplicate, really)
         # msft_test_field = fix.Symbol()
         # message.getField( msft_test_field )
         # msft_test_value = msft_test_field.getValue()
@@ -108,30 +111,27 @@ class Application(fix.Application):
         leaves_qty = fix.LeavesQty()
         message.getField(leaves_qty)
         shares_rem = leaves_qty.getValue()
-        if leaves_qty.getValue() != 0:
+        if shares_rem != 0:
             print(" Shares Remaining -- {shares_rem}")
         else:
-            print(" 0 Shares Remaining.")
+            print(" 0 Shares Remaining -- Order Completely Filled.")
 
 
-
-        # ## THIS is the response type... (THIS is whats being SENT back to us)
-        # if msgType == fix.MsgType_ExecutionReport:
-        #     print("Fill Report Received...")
-
-        ##executionReport.getHeader().setField( fix.MsgType(fix.MsgType_ExecutionReport) )
-
-
-        # Remainign quantity (THIS is what is SENT to us... so parse it)
-        # if beginString.getValue() >= fix.BeginString_FIX41:
-        #     executionReport.setField( fix.ExecType(fix.ExecType_FILL) )
-        #     executionReport.setField( fix.LeavesQty(0) )
-
-        # if beginString.getValue() >= fix.BeginString_FIX41:
-        #     message.getField( fix.ExecType()) # want fix.ExecType_FILL for FILL
-        #     #rem = message.getField( fix.LeavesQty )
-        #     #print(rem)
-
+        ''' 
+        ## Example fields to parse, potentially:
+        
+        executionReport.setField( fix.OrderID(self.genOrderID()) )
+        executionReport.setField( fix.ExecID(self.genExecID()) )
+        executionReport.setField( fix.OrdStatus(fix.OrdStatus_FILLED) )
+        executionReport.setField( symbol )
+        executionReport.setField( side )
+        executionReport.setField( fix.CumQty(orderQty.getValue()) )
+        executionReport.setField( fix.AvgPx(price.getValue()) )
+        executionReport.setField( fix.LastShares(orderQty.getValue()) )
+        executionReport.setField( fix.LastPx(price.getValue()) )
+        executionReport.setField( clOrdID )
+        executionReport.setField( orderQty )
+        '''
 
 
     def genExecID(self):
