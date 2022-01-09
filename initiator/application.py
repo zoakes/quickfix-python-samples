@@ -81,13 +81,29 @@ class Application(fix.Application):
         orderQty = fix.OrderQty()
         price = fix.Price()
         clOrdID = fix.ClOrdID()
+        orderStatus = fix.OrdStatus()
+        avgPrice = fix.AvgPx()
+        last_shares = fix.LastShares()
+        cum_shares = fix.CumQty()
+
+
+        message.getField( avgPrice )
+        avgPrice_val = avgPrice.getValue()
+        print("Avg Price: ", avgPrice_val)
+
+        message.getField( cum_shares )
+        print("Cumulative Shares: ", cum_shares.getValue())
+
+        message.getField( orderStatus )
+        print("Order Status -- Filled :", orderStatus.getValue() == fix.OrdStatus_FILLED)
+
 
 
         # Quick test (test any of the defined fields ^^)
-        field = symbol                              # 55=
-        message.getField( field )                   # 55=MSFT
-        if field.getValue() != "MSFT":   # MSFT != MSFT
-            print("field (test) -- ", field, field.getValue())
+        field = symbol                                              # 55=
+        message.getField( field )                                   # 55=MSFT
+        if field.getValue():                                        # MSFT != None
+            print("field (test) -- ", field, field.getValue())      # 55=MSFT, MSFT
 
         # AIO example (No real shortcuts to this)
         key = fix.Symbol()
@@ -122,17 +138,17 @@ class Application(fix.Application):
         ''' 
         ## Example fields to parse, potentially:
         
-        executionReport.setField( fix.OrderID(self.genOrderID()) )
-        executionReport.setField( fix.ExecID(self.genExecID()) )
-        executionReport.setField( fix.OrdStatus(fix.OrdStatus_FILLED) )
+        executionReport.setField( fix.OrderID(self.genOrderID()) )      #Done
+        executionReport.setField( fix.ExecID(self.genExecID()) )        # NOT in 
+        executionReport.setField( fix.OrdStatus(fix.OrdStatus_FILLED) ) #Done 
         executionReport.setField( symbol )
         executionReport.setField( side )
-        executionReport.setField( fix.CumQty(orderQty.getValue()) )
-        executionReport.setField( fix.AvgPx(price.getValue()) )
-        executionReport.setField( fix.LastShares(orderQty.getValue()) )
+        executionReport.setField( fix.CumQty(orderQty.getValue()) )     #NOT done 
+        executionReport.setField( fix.AvgPx(price.getValue()) )         #Done
+        executionReport.setField( fix.LastShares(orderQty.getValue()) ) #Done
         executionReport.setField( fix.LastPx(price.getValue()) )
-        executionReport.setField( clOrdID )
-        executionReport.setField( orderQty )
+        executionReport.setField( clOrdID )                             #Done 
+        executionReport.setField( orderQty )                            #Done 
         '''
 
 
