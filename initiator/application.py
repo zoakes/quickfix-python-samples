@@ -35,36 +35,55 @@ class Application(fix.Application):
         msg = message.toString().replace(__SOH__, "|")
         logfix.info("(Admin) S >> %s" % msg)
         return
+
     def fromAdmin(self, message, sessionID):
         msg = message.toString().replace(__SOH__, "|")
         logfix.info("(Admin) R << %s" % msg)
         return
 
-    ## Trades TO Server...
+
     def toApp(self, message, sessionID):
+        ## Trades TO Server...
         msg = message.toString().replace(__SOH__, "|")
         logfix.info("(App) S >> %s" % msg)
         return
 
-    ## FILLS from server...
+
     def fromApp(self, message, sessionID):
+        # FILLS from server... (execReport FROM server to client, goes here)
         msg = message.toString().replace(__SOH__, "|")
         logfix.info("(App) R << %s" % msg)
         self.onMessage(message, sessionID)
         return
 
-    ## HANDLE fills here !!
-    ## TODO (MAYBE split this into onExecReport ? *** )
-
+    # TODO (MAYBE split this into onExecReport ? *** )
     def onMessage(self, message, sessionID):
-        """Processing application message here"""
-        #Process ExecutionReport !!
+        """Processing application message here
+        Receives fromApp Messages -- (APP) messages, namely ExecReports!
+
+        ## ExecutionReport Example fields
+
+        executionReport.setField( fix.OrderID(self.genOrderID()) )      #Done
+        executionReport.setField( fix.ExecID(self.genExecID()) )        #Done
+        executionReport.setField( fix.OrdStatus(fix.OrdStatus_FILLED) ) #Done
+        executionReport.setField( symbol )                              #Ready,
+        executionReport.setField( side )                                #Ready
+        executionReport.setField( fix.CumQty(orderQty.getValue()) )     #done
+        executionReport.setField( fix.AvgPx(price.getValue()) )         #Done
+        executionReport.setField( fix.LastShares(orderQty.getValue()) ) #Done
+        executionReport.setField( fix.LastPx(price.getValue()) )        #NOT done
+        executionReport.setField( clOrdID )                             #Done
+        executionReport.setField( orderQty )                            #Done
+        """
+
 
         beginString = fix.BeginString()
         msgType = fix.MsgType()
         message.getHeader().getField( beginString )
         message.getHeader().getField( msgType )
 
+        # ----------------- Execution Report --------------- ##
+        # Parse SENT + FILLS (+ update OMS).
 
         # likely only interested in execution reports -- for now receiving all.
         if msgType.getValue() == fix.MsgType_ExecutionReport:
@@ -72,8 +91,6 @@ class Application(fix.Application):
 
         # else:
         #     return ## DONT need the rest of them
-
-
 
         symbol = fix.Symbol()
         side = fix.Side()
@@ -85,8 +102,20 @@ class Application(fix.Application):
         avgPrice = fix.AvgPx()
         last_shares = fix.LastShares()
         cum_shares = fix.CumQty()
+        execID = fix.ExecID()
+        lastPX = fix.LastPx()
 
+        message.getField( execID )
+        print("Exec ID: ", execID.getValue())
 
+        message.getField( orderStatus )
+        print("Order Status -- Filled :", orderStatus.getValue() == fix.OrdStatus_FILLED)
+
+        # FILLED last order at THIS price
+        message.getField( lastPX )
+        print("Last PX: ", lastPX.getValue())
+
+        #Overall average price (WHOLE position, not THIS trade)
         message.getField( avgPrice )
         avgPrice_val = avgPrice.getValue()
         print("Avg Price: ", avgPrice_val)
@@ -94,13 +123,23 @@ class Application(fix.Application):
         message.getField( cum_shares )
         print("Cumulative Shares: ", cum_shares.getValue())
 
-        message.getField( orderStatus )
-        print("Order Status -- Filled :", orderStatus.getValue() == fix.OrdStatus_FILLED)
-
         message.getField( orderQty )
         print("Filled Quantity: ", orderQty.getValue()) #Could compare to target quantity or changed qty?
 
+        exec_type = fix.ExecType()
+        message.getField( exec_type )
+        if exec_type.getValue() == fix.ExecType_FILL:
+            print("< Order Filled >")
 
+        leaves_qty = fix.LeavesQty()
+        message.getField(leaves_qty)
+        shares_rem = leaves_qty.getValue()
+        if shares_rem != 0:
+            print(" Shares Remaining -- {shares_rem}")
+        else:
+            print(" 0 Shares Remaining -- Order Completely Filled.")
+
+        # ---------------------  Test Syntax ------------------------ #
 
         # Quick test (test any of the defined fields ^^)
         field = symbol                                              # 55=
@@ -112,52 +151,11 @@ class Application(fix.Application):
         key = fix.Symbol()
         message.getField( key )
         res = key.getValue()
-        print("KEY-VAL Test (shortcut): ", res)
-
-        ## Symbol Example (In order) (Duplicate, really)
-        # msft_test_field = fix.Symbol()
-        # message.getField( msft_test_field )
-        # msft_test_value = msft_test_field.getValue()
-        # print( "MSFT TEST (shortcut): ", msft_test_value)
-
-
-        exec_type = fix.ExecType()
-        message.getField( exec_type )
-        if exec_type.getValue() != fix.ExecType_FILL:
-            print("NOT filled...")
-        else:
-            print("< Order Filled >")
-
-
-        leaves_qty = fix.LeavesQty()
-        message.getField(leaves_qty)
-        shares_rem = leaves_qty.getValue()
-        if shares_rem != 0:
-            print(" Shares Remaining -- {shares_rem}")
-        else:
-            print(" 0 Shares Remaining -- Order Completely Filled.")
-
-
-        ''' 
-        ## Example fields to parse, potentially:
-        
-        executionReport.setField( fix.OrderID(self.genOrderID()) )      #Done
-        executionReport.setField( fix.ExecID(self.genExecID()) )        # NOT in 
-        executionReport.setField( fix.OrdStatus(fix.OrdStatus_FILLED) ) #Done 
-        executionReport.setField( symbol )
-        executionReport.setField( side )
-        executionReport.setField( fix.CumQty(orderQty.getValue()) )     #NOT done 
-        executionReport.setField( fix.AvgPx(price.getValue()) )         #Done
-        executionReport.setField( fix.LastShares(orderQty.getValue()) ) #Done
-        executionReport.setField( fix.LastPx(price.getValue()) )
-        executionReport.setField( clOrdID )                             #Done 
-        executionReport.setField( orderQty )                            #Done 
-        '''
-
+        print("KEY-VAL Test: ", res)
 
     def genExecID(self):
-    	self.execID += 1
-    	return str(self.execID).zfill(5)
+        self.execID += 1
+        return str(self.execID).zfill(5)
 
     def put_new_order(self):
         """Request sample new order single"""
@@ -229,10 +227,24 @@ class Application(fix.Application):
 
         fix.Session.sendToTarget(message, self.sessionID)
 
+
     def run(self):
         """Run"""
         while 1:
             options = str(input("Please choose 1 for Put New Order or 2 for Exit!\n"))
+
+            # ---- REPLACE with SQL Read, (or non-blocking TCP Server)  ----- #
+
+            # TCP Sample: (See RithmicOMS tcp branch)
+            # asyncio.create_task(async_listen()) ## Likely needs a wait_for()
+
+            # THIS could be created outside loop,
+            # call an external task,
+            # that updates a global orders list (which we loop through here)
+
+            # Sample: (See RithmicOMS sql branch)
+            # orders = sqlClient.ParseOrders()
+            # if len(orders) > 0: ... SEND THEM + Mark Sent / Filled with events ^^
 
             ## Limit Buy (Example)
             if options == '1':
@@ -241,10 +253,10 @@ class Application(fix.Application):
                 continue
 
             ## Limit Sell (ZO)
-            if options == '-1':
+            elif options == '-1':
                 self.send_order('MSFT',-1, 10000,100,'LMT')
 
-            if  options == '2':
+            elif  options == '2':
                 sys.exit(0)
 
             else:
