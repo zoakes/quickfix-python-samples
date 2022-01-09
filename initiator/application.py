@@ -75,13 +75,15 @@ class Application(fix.Application):
         ## THIS is how you GET a value from a message... OR is it received like passed by ref in C++? Cant tell...
 
         # THIS canbe set to ANY field in ExecReport !! Test them all.
-        
-        field = symbol
-        message.getField( field )
-        if field.getValue() != fix.OrdType_LIMIT:
+
+        field = symbol                              # 55=
+        message.getField( field )                   # 55=MSFT
+        if field.getValue() != fix.OrdType_LIMIT:   # MSFT != 1
             #raise fix.IncorrectTagValue( ordType.getField() )
             pass
             print("field (test) -- ", field, field.getValue())
+
+        # Shortcut
 
 
         exec_type = fix.ExecType()
