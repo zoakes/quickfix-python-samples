@@ -70,7 +70,7 @@ class Application(fix.Application):
         price = fix.Price()
         clOrdID = fix.ClOrdID()
 
-        print(symbol)
+
 
         ## THIS is how you GET a value from a message... OR is it received like passed by ref in C++? Cant tell...
 
@@ -83,7 +83,18 @@ class Application(fix.Application):
             pass
             print("field (test) -- ", field, field.getValue())
 
-        # Shortcut
+        # Shortcut attempts (No real shortcuts to this)
+
+        key = fix.Symbol()
+        message.getField( key )
+        res = key.getValue()
+        print("KEY-VAL Test (shortcut): ", res)
+
+        ## Symbol Example (In order)
+        # msft_test_field = fix.Symbol()
+        # message.getField( msft_test_field )
+        # msft_test_value = msft_test_field.getValue()
+        # print( "MSFT TEST (shortcut): ", msft_test_value)
 
 
         exec_type = fix.ExecType()
