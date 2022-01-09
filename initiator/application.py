@@ -54,6 +54,8 @@ class Application(fix.Application):
         return
 
     ## HANDLE fills here !!
+    ## TODO (MAYBE split this into onExecReport ? *** )
+
     def onMessage(self, message, sessionID):
         """Processing application message here"""
         #Process ExecutionReport !!
