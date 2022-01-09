@@ -97,6 +97,9 @@ class Application(fix.Application):
         message.getField( orderStatus )
         print("Order Status -- Filled :", orderStatus.getValue() == fix.OrdStatus_FILLED)
 
+        message.getField( orderQty )
+        print("Filled Quantity: ", orderQty.getValue()) #Could compare to target quantity or changed qty?
+
 
 
         # Quick test (test any of the defined fields ^^)
