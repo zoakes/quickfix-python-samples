@@ -66,6 +66,7 @@ class Application(fix.Application):
         price = fix.Price()
         clOrdID = fix.ClOrdID()
 
+        # Requires limits ? Why... (Remove this?
         message.getField( ordType )
         if ordType.getValue() != fix.OrdType_LIMIT:
             raise fix.IncorrectTagValue( ordType.getField() )
