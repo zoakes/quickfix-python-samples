@@ -208,16 +208,17 @@ class Application(fix.Application):
 
         header.setField(fix.MsgType(fix.MsgType_NewOrderSingle)) #39 = D?
 
-
         message.setField(fix.ClOrdID(self.genExecID()))  # 11 = Unique Sequence Number
 
         message.setField(fix.Side(direction))  # 43 = 1 BUY
         message.setField(fix.Symbol(symbol))  # 55 = MSFT
         message.setField(fix.OrderQty(qty))  # 38 = 1000
+
         if _price:
             message.setField(fix.Price(_price))
         message.setField(fix.OrdType(order_type))  # 40=2 Limit Order
         message.setField(fix.HandlInst(fix.HandlInst_MANUAL_ORDER_BEST_EXECUTION))  # 21 = 3
+
         message.setField(fix.TimeInForce('0'))      #TEST to see what 0 is ?
         message.setField(fix.Text("NewOrderSingle"))
 
@@ -226,7 +227,6 @@ class Application(fix.Application):
         message.setField(trstime)
 
         fix.Session.sendToTarget(message, self.sessionID)
-
 
     def run(self):
         """Run"""
@@ -255,6 +255,7 @@ class Application(fix.Application):
             ## Limit Sell (ZO)
             elif options == '-1':
                 self.send_order('MSFT',-1, 10000,100,'LMT')
+                continue
 
             elif  options == '2':
                 sys.exit(0)
