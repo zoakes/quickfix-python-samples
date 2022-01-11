@@ -7,6 +7,7 @@ import time
 import logging
 from datetime import datetime
 from model.logger import setup_logger
+
 __SOH__ = chr(1)
 
 # Logger
@@ -41,13 +42,11 @@ class Application(fix.Application):
         logfix.info("(Admin) R << %s" % msg)
         return
 
-
     def toApp(self, message, sessionID):
         ## Trades TO Server...
         msg = message.toString().replace(__SOH__, "|")
         logfix.info("(App) S >> %s" % msg)
         return
-
 
     def fromApp(self, message, sessionID):
         # FILLS from server... (execReport FROM server to client, goes here)
@@ -76,11 +75,10 @@ class Application(fix.Application):
         executionReport.setField( orderQty )                            #Done
         """
 
-
         beginString = fix.BeginString()
         msgType = fix.MsgType()
-        message.getHeader().getField( beginString )
-        message.getHeader().getField( msgType )
+        message.getHeader().getField(beginString)
+        message.getHeader().getField(msgType)
 
         # ----------------- Execution Report --------------- ##
         # Parse SENT + FILLS (+ update OMS).
@@ -105,29 +103,29 @@ class Application(fix.Application):
         execID = fix.ExecID()
         lastPX = fix.LastPx()
 
-        message.getField( execID )
+        message.getField(execID)
         print("Exec ID: ", execID.getValue())
 
-        message.getField( orderStatus )
+        message.getField(orderStatus)
         print("Order Status -- Filled :", orderStatus.getValue() == fix.OrdStatus_FILLED)
 
         # FILLED last order at THIS price
-        message.getField( lastPX )
+        message.getField(lastPX)
         print("Last PX: ", lastPX.getValue())
 
-        #Overall average price (WHOLE position, not THIS trade)
-        message.getField( avgPrice )
+        # Overall average price (WHOLE position, not THIS trade)
+        message.getField(avgPrice)
         avgPrice_val = avgPrice.getValue()
         print("Avg Price: ", avgPrice_val)
 
-        message.getField( cum_shares )
+        message.getField(cum_shares)
         print("Cumulative Shares: ", cum_shares.getValue())
 
-        message.getField( orderQty )
-        print("Filled Quantity: ", orderQty.getValue()) #Could compare to target quantity or changed qty?
+        message.getField(orderQty)
+        print("Filled Quantity: ", orderQty.getValue())  # Could compare to target quantity or changed qty?
 
         exec_type = fix.ExecType()
-        message.getField( exec_type )
+        message.getField(exec_type)
         if exec_type.getValue() == fix.ExecType_FILL:
             print("< Order Filled >")
 
@@ -142,16 +140,18 @@ class Application(fix.Application):
         # ---------------------  Test Syntax ------------------------ #
 
         # Quick test (test any of the defined fields ^^)
-        field = symbol                                              # 55=
-        message.getField( field )                                   # 55=MSFT
-        if field.getValue():                                        # MSFT != None
-            print("field (test) -- ", field, field.getValue())      # 55=MSFT, MSFT
+        field = symbol  # 55=
+        message.getField(field)  # 55=MSFT
+        if field.getValue():  # MSFT != None
+            print("field (test) -- ", field, field.getValue())  # 55=MSFT, MSFT
 
         # AIO example (No real shortcuts to this)
         key = fix.Symbol()
-        message.getField( key )
+        message.getField(key)
         res = key.getValue()
         print("KEY-VAL Test: ", res)
+
+    # ------------------- Helpers ------------------ ##
 
     def genExecID(self):
         self.execID += 1
@@ -162,15 +162,15 @@ class Application(fix.Application):
         message = fix.Message()
         header = message.getHeader()
 
-        header.setField(fix.MsgType(fix.MsgType_NewOrderSingle)) #39 = D 
+        header.setField(fix.MsgType(fix.MsgType_NewOrderSingle))  # 39 = D
 
-        message.setField(fix.ClOrdID(self.genExecID())) #11 = Unique Sequence Number
-        message.setField(fix.Side(fix.Side_BUY)) #43 = 1 BUY 
-        message.setField(fix.Symbol("MSFT")) #55 = MSFT
-        message.setField(fix.OrderQty(10000)) #38 = 1000
+        message.setField(fix.ClOrdID(self.genExecID()))  # 11 = Unique Sequence Number
+        message.setField(fix.Side(fix.Side_BUY))  # 43 = 1 BUY
+        message.setField(fix.Symbol("MSFT"))  # 55 = MSFT
+        message.setField(fix.OrderQty(10000))  # 38 = 1000
         message.setField(fix.Price(100))
-        message.setField(fix.OrdType(fix.OrdType_LIMIT)) #40=2 Limit Order 
-        message.setField(fix.HandlInst(fix.HandlInst_MANUAL_ORDER_BEST_EXECUTION)) #21 = 3
+        message.setField(fix.OrdType(fix.OrdType_LIMIT))  # 40=2 Limit Order
+        message.setField(fix.HandlInst(fix.HandlInst_MANUAL_ORDER_BEST_EXECUTION))  # 21 = 3
         message.setField(fix.TimeInForce('0'))
         message.setField(fix.Text("NewOrderSingle"))
         trstime = fix.TransactTime()
@@ -184,7 +184,7 @@ class Application(fix.Application):
         header = message.getHeader()
 
         # DOES this need SELL or SELLSHORT ? Or BOTH?
-        direction = fix.Side_BUY if side > 0 else fix.Side_SELL ##43 = 1 buy, or 2 sell (?) (MIGHT need sellshort + sell?)
+        direction = fix.Side_BUY if side > 0 else fix.Side_SELL  ##43 = 1 buy, or 2 sell (?) (MIGHT need sellshort + sell?)
 
         order_type = fix.OrdType_MARKET
         if _price:
@@ -206,7 +206,7 @@ class Application(fix.Application):
             # if _price:
             #     price = _price
 
-        header.setField(fix.MsgType(fix.MsgType_NewOrderSingle)) #39 = D?
+        header.setField(fix.MsgType(fix.MsgType_NewOrderSingle))  # 39 = D?
 
         message.setField(fix.ClOrdID(self.genExecID()))  # 11 = Unique Sequence Number
 
@@ -219,7 +219,7 @@ class Application(fix.Application):
         message.setField(fix.OrdType(order_type))  # 40=2 Limit Order
         message.setField(fix.HandlInst(fix.HandlInst_MANUAL_ORDER_BEST_EXECUTION))  # 21 = 3
 
-        message.setField(fix.TimeInForce('0'))      #TEST to see what 0 is ?
+        message.setField(fix.TimeInForce('0'))  # TEST to see what 0 is ?
         message.setField(fix.Text("NewOrderSingle"))
 
         trstime = fix.TransactTime()
@@ -254,10 +254,10 @@ class Application(fix.Application):
 
             ## Limit Sell (ZO)
             elif options == '-1':
-                self.send_order('MSFT',-1, 10000,100,'LMT')
+                self.send_order('MSFT', -1, 10000, 100, 'LMT')
                 continue
 
-            elif  options == '2':
+            elif options == '2':
                 sys.exit(0)
 
             else:
