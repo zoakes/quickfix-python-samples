@@ -261,5 +261,5 @@ class Application(fix.Application):
                 sys.exit(0)
 
             else:
-                print("Valid input is 1 for order, 2 for exit\n")
+                print("Valid input is 1 for buy order, -1 for sell order, 2 for exit\n")
             time.sleep(2)
